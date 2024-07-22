@@ -28,6 +28,9 @@ function App() {
         statusMessage='Available' // Optional
         placeholder='Write here...' // Optional
         allowEsc={true} // Optional
+        chatboxHeight={450}
+        inputs={[{id: 1, placeholder: "Nome"}, {id: 2, placeholder: "Telefone"}, {id: 3, placeholder: "E-Mail"}]}
+
         // You can find the complete list of props in the README.md file
       />
     </>

@@ -1,17 +1,24 @@
 import { useReducer, useEffect, useCallback, useRef, useMemo } from 'react'
 import { reducer } from './reducer'
-import { WhatsappSVG, CloseSVG, CheckSVG, SendSVG } from './Icons'
+import { WhatsappSVG, CloseSVG, SendSVG } from './Icons'
 import styles from './FloatingWhatsApp.module.css'
 
 import darkBG from './assets/bg-chat-tile-light.png'
 import lightBG from './assets/bg-chat-tile-dark.png'
 import dummyAvatar from './assets/avatar.svg'
 
+interface InputProps {
+  id: string | number
+  value?: string
+  placeholder?: string
+  pattern?: string
+}
+
 export interface FloatingWhatsAppProps {
   /** Callback function fires on click */
   onClick?: (event: React.MouseEvent<HTMLDivElement>) => void
   /** Callback function fires on submit with event and form input value passed */
-  onSubmit?: (event: React.FormEvent<HTMLFormElement>, formValue: string) => void
+  onSubmit?: (event: React.FormEvent<HTMLFormElement>, formValue: string, inputs?: any) => void
   /** Callback function fires on close */
   onClose?: () => void
   /** Callback function fired when notification runs */
@@ -67,6 +74,8 @@ export interface FloatingWhatsAppProps {
   buttonStyle?: React.CSSProperties
   /** CSS className applied to button */
   buttonClassName?: string
+
+  inputs?: InputProps[]
 }
 
 export function FloatingWhatsApp({
@@ -104,6 +113,7 @@ export function FloatingWhatsApp({
   darkMode = false,
   style,
   className = 'floating-whatsapp',
+  inputs
 }: FloatingWhatsAppProps) {
   const [{ isOpen, isDelay, isNotification }, dispatch] = useReducer(reducer, {
     isOpen: false,
@@ -117,8 +127,25 @@ export function FloatingWhatsApp({
   )
 
   const inputRef = useRef<HTMLInputElement | null>(null)
+
+  const setFormInputValue = useCallback(
+    (id: string | number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      inputs?.find((input) => {
+        if (input.id === id) {
+          input.value = e.target.value
+        }
+      })
+    },
+    []
+  )
+
+  const formInputs = inputs && inputs.map(input => {
+    return <input id={input.id.toString()} placeholder={input.placeholder} onChange={setFormInputValue(input.id)}></input>
+  })
+
   const loops = useRef(0)
   const notificationInterval = useRef(0)
+
 
   const handleNotification = useCallback(() => {
     if (!notification) return
@@ -172,7 +199,8 @@ export function FloatingWhatsApp({
     window.open(
       `https://api.whatsapp.com/send/?phone=${phoneNumber}&text=${inputRef.current.value.trim()}`
     )
-    if (onSubmit) onSubmit(event, inputRef.current.value)
+    console.log(inputs)
+    if (onSubmit) onSubmit(event, inputRef.current.value, inputs)
     inputRef.current.value = ''
   }
 
@@ -239,7 +267,7 @@ export function FloatingWhatsApp({
         <div className={styles.preChatBody}>
           <div
             className={styles.chatBody}
-            // style={{ backgroundImage: `url(${darkMode ? darkBG : lightBG})` }}
+          // style={{ backgroundImage: `url(${darkMode ? darkBG : lightBG})` }}
           >
             {isDelay ? (
               <div className={styles.chatBubble}>
@@ -253,7 +281,10 @@ export function FloatingWhatsApp({
               <div className={styles.message}>
                 <span className={styles.triangle} />
                 <span className={styles.accountName}>{accountName}</span>
-                <p className={styles.messageBody}>{initialMessageByServer}</p>
+                <p className={styles.messageBody}>
+                  {initialMessageByServer}
+                  {formInputs}
+                </p>
                 <span className={styles.messageTime}>{timeNow}</span>
               </div>
             )}

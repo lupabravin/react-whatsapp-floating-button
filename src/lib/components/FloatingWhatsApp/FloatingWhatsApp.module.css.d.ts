@@ -48,6 +48,7 @@ interface Namespace {
   status: string
   statusTitle: string
   statusSubtitle: string
+  preChatBody: string
   chatBody: string
   chatBubble: string
   typing: string
